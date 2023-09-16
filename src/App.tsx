@@ -15,7 +15,7 @@ initializeApp(firebaseConfig)
 const auth = getAuth()
 function Login() {
   return <button onClick={() => {
-    signInWithPopup(auth, new GoogleAuthProvider)
+    signInWithPopup(auth, new GoogleAuthProvider())
   }}>login</button>
 }
 function Home() {
