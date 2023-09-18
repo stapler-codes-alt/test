@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { onAuthStateChanged, getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { collection, getDocs, getFirestore, addDoc } from "firebase/firestore";
+import { useEffect, useState, useRef } from "react";
 const firebaseConfig = {
   apiKey: "AIzaSyBgqWcWDawppFxwV5Uw3SpcVNS9lbC0rJY",
   authDomain: "app1-4ac11.firebaseapp.com",
@@ -36,16 +36,39 @@ function Home() {
   useEffect(() => {
     fetchPosts()
   }, [])
-  return <div className="posts">
-    {posts.map((post:any) => <div className="post" key={post.id}>
+  return <div className="main">
+  <Add />
+  <div className="posts">
+    {posts.map((post:any) => <> 
+    <div className="post" key={post.id}>
     <div>
     <img className="profilePicture" src={post.photo} alt="" />
     <h2>{post.username}</h2>
     </div>
     <h1 className="description">{post.description}</h1>
     <a href={post.discordProfileUrl} target="_blank"><button>Contact On Discord</button></a>
-  </div>)}
+  </div></>)}
   </div>
+  </div>
+}
+const db = getFirestore()
+function Add() {
+  const description = useRef(null)
+  const discordProfileUrl = useRef(null)
+  return <><form onSubmit={async (e) => {
+    e.preventDefault()
+    await addDoc(collection(db, "posts"), {
+	description: description,
+	discordProfileUrl: discordProfileUrl,
+	username: auth.currentUser?.displayName,
+	photo: auth.currentUser?.userProfile})
+  }}>
+    <input type="text" placeholder="Project Description" ref={description} />
+    <br /><br />
+    <input type="text" placeholder="Discord Profile Url" ref={discordProfileUrl} />
+    <br /><br />
+    <button type="submit">Add</button>
+  </form></>
 }
 export default function App() {
   type currentViewType = 'login' | 'main' | 'add'
@@ -57,5 +80,13 @@ export default function App() {
       setCurrentView("login")
     }
   })
-  return currentView === 'login' ? <Login /> : currentView === 'main' ? <Home /> : null
+  return <>
+  {currentView === 'main' ? <nav>
+        <button onClick={() => setCurrentView('main')}>Home</button>
+	<button onClick={() => setCurrentView('add')}>Add</button>
+  </nav> : currentView === 'add' && <nav>
+        <button>Home</button>
+  </nav>}
+  {currentView === 'login' ? <Login /> : currentView === 'main' ? <Home /> :null}
+  </>
 }
